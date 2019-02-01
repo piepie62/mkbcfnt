@@ -77,9 +77,16 @@ int parseEasyData(BCFNT& outFont, FT_Face font)
     return processedChars;
 }
 
+inline void swapPixel(Magick::PixelPacket& p1, Magick::PixelPacket& p2)
+{
+    Magick::Color tmp = p1;
+    p1 = p2;
+    p2 = tmp;
+}
+
 void swizzle(Magick::PixelPacket* p, bool reverse)
 {
-  // swizzle foursome table
+    // swizzle foursome table
     static const unsigned char table[][4] =
     {
         {  2,  8, 16,  4, },
@@ -120,8 +127,18 @@ void swizzle(Magick::PixelPacket* p, bool reverse)
             p[entry[0]]       = tmp;
         }
     }
+
+    // (un)swizzle each pair
+    swapPixel(p[12], p[18]);
+    swapPixel(p[13], p[19]);
+    swapPixel(p[44], p[50]);
+    swapPixel(p[45], p[51]);
 }
 
+/** @brief Swizzle an image (Morton order)
+ *  @param[in] img     Image to swizzle
+ *  @param[in] reverse Whether to unswizzle
+ */
 void swizzle(Magick::Image &img, bool reverse)
 {
     Magick::Pixels cache(img);
@@ -142,47 +159,52 @@ void swizzle(Magick::Image &img, bool reverse)
 
 void parseImageData(BCFNT& outFont, FT_Face font, const int indices)
 {
-    for (int i = 0; i < indices; i += 170)
+    const int baseline = -font->size->metrics.ascender / 64;
+    for (int page = 0; page < indices + 170; page += 170)
     {
         Magick::Image image(Magick::Geometry(256, 512), Magick::Color("#00000000"));
-        for (int j = 0; j < 170; j++) // 10 x 17 * 24 x 30 = 240 x 510 which is a good size
+        Magick::Pixels cache(image);
+        for (int glyph = 0; glyph < 170; glyph++) // 10 x 17 * 24 x 30 = 240 x 510 which is a good size
         {
-            if (i + j < indices)
+            if (page + glyph < indices)
             {
-                if (FT_Load_Glyph(font, i + j, FT_LOAD_RENDER))
+                // if (FT_Load_Glyph(font, page + glyph, FT_LOAD_RENDER))
+                // {
+                //     printf("Cleanup on line 152");
+                // }
+                int x = (glyph % 10) * 24;
+                int y = (glyph / 10) * 30;
+                Magick::PixelPacket* glyphData = cache.get(x, y, 24, 30);
+                for (int gy = 0; gy < font->glyph->bitmap.rows; gy++)
                 {
-                    printf("Cleanup on line 152");
-                }
-                int x = (j % 10) * 24;
-                int y = (j / 10) * 30;
-                for (int px = 0; px < font->glyph->bitmap.width; px++)
-                {
-                    for (int py = 0; py < font->glyph->bitmap.rows; py++)
+                    for (int gx = 0; gx < font->glyph->bitmap.width; gx++)
                     {
                         FT_Render_Glyph(font->glyph, FT_RENDER_MODE_NORMAL);
-                        uint8_t pixelVal = font->glyph->bitmap.buffer[py * font->glyph->bitmap.width + px];
-                        Magick::PixelPacket* pixel = image.setPixels(x + px, y + py, 1, 1);
-                        pixel->blue = pixelVal;
-                        pixel->green = pixelVal;
-                        pixel->red = pixelVal;
-                        if (pixelVal)
-                        {
-                            pixel->opacity = 0xFF;
-                        }
-                        else
-                        {
-                            pixel->opacity = 0;
-                        }
-                        image.syncPixels();
+                        int px = gx + font->glyph->bitmap_left;
+                        int py = gy + (baseline - font->glyph->bitmap_top);
+                        uint8_t pixelVal = font->glyph->bitmap.buffer[gy * font->glyph->bitmap.width + gx];
+                        glyphData[py * 24 + px].red = 0;
+                        glyphData[py * 24 + px].blue = 0;
+                        glyphData[py * 24 + px].green = 0;
+                        glyphData[py * 24 + px].opacity = pixelVal;
                     }
                 }
+                cache.sync();
+            }
+            else
+            {
+                break;
             }
         }
         swizzle(image, false);
-        image.magick("RGBA");
-        Magick::Blob rawData;
-        image.write(&rawData);
-        outFont.addSheet((uint8_t*)rawData.data());
+        uint8_t* data = (uint8_t*)malloc(128*512); // A4
+        Magick::PixelPacket* pixelData = cache.get(0, 0, 256, 512);
+        for (int pixel = 0; pixel < 256*512; pixel += 2)
+        {
+            data[pixel / 2] = (pixelData[pixel].opacity / 16) | ((pixelData[pixel + 1].opacity / 16) << 4);
+        }
+        outFont.addSheet(data);
+        free(data);
     }
 }
 
@@ -223,7 +245,7 @@ int main(int argc, char* argv[])
 
     BCFNT outFont(font);
     int indices = parseEasyData(outFont, font);
-    // parseImageData(outFont, font, indices);
+    parseImageData(outFont, font, indices); // Currently crashes
 
     auto fontData = outFont.toStruct();
     FILE* out = fopen("out.bcfnt", "wb");

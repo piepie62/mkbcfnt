@@ -1,6 +1,8 @@
 #include "bcfnt.hpp"
 #include <cstdlib>
 
+static constexpr int PIXEL_SIZE = 1;
+
 BCFNT::BCFNT(FT_Face font)
 {
     FT_Load_Glyph(font, 0, FT_LOAD_RENDER);
@@ -23,10 +25,10 @@ BCFNT::BCFNT(FT_Face font)
     tglp->nRows = 10;
     tglp->nLines = 17;
 
-    tglp->sheetWidth = 256;
+    tglp->sheetWidth = 128;
     tglp->sheetHeight = 512;
-    tglp->sheetSize = 4 * 256 * 512; // 4-bit, so virtually multiplied by 2
-    tglp->sheetFmt = 0x0; //0x0 is RGBA8, but 0xB is 4-bit alpha, which I probably want to work towards. This is going to be a nuisance
+    tglp->sheetSize = tglp->sheetWidth * tglp->sheetHeight * PIXEL_SIZE; // 4-bit, so virtually multiplied by 2
+    tglp->sheetFmt = 0x8; //0x0 is RGBA8, but 0xB is 4-bit alpha, which I probably want to work towards. This is going to be a nuisance
     tglp->nSheets = 0;
     tglp->sheetData = 0;
 }
