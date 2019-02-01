@@ -1,0 +1,40 @@
+{
+    "configurations": [
+        {
+            "name": "3DS",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:/Users/chris/AppData/Local/Packages/CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc/LocalState/rootfs/usr/include/**",
+                "C:/Users/chris/AppData/Local/Packages/CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc/LocalState/rootfs/usr/include/ImageMagick-6/",
+                "C:/Users/chris/AppData/Local/Packages/CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc/LocalState/rootfs/usr/include/ImageMagick-6/magick"
+            ],
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/include",
+                    "C:/Users/chris/AppData/Local/Packages/CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc/LocalState/rootfs/usr/include"
+                ],
+                "limitSymbolsToIncludedHeaders": false,
+                "databaseFilename": ""
+            },
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "VERSION_MAJOR=6",
+                "VERSION_MINOR=0",
+                "VERSION_MICRO=0",
+                "GIT_REV",
+                "UNIQUE_ID=0xEC100",
+                "UNIX_HOST",
+                "PICOC_DEBUG",
+                "_3DS",
+                "_GNU_SOURCE=1",
+                "ARM11"
+            ],
+            "intelliSenseMode": "clang-x64",
+            "cppStandard": "c++17",
+            "cStandard": "c11"
+        }
+    ],
+    "version": 4
+}
