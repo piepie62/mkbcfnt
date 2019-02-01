@@ -7,10 +7,10 @@ BCFNT::BCFNT(FT_Face font)
     FT_Render_Glyph(font->glyph, FT_RENDER_MODE_NORMAL);
     cfnt.finf.lineFeed = font->size->metrics.height / 64;
     cfnt.finf.defaultWidth.left = font->glyph->metrics.horiBearingX / 64;
-    cfnt.finf.defaultWidth.glyphWidth = font->glyph->metrics.width / 64; // Not working?
-    cfnt.finf.defaultWidth.charWidth = font->glyph->metrics.horiAdvance / 64; // Not working?
+    cfnt.finf.defaultWidth.glyphWidth = font->glyph->metrics.width / 64;
+    cfnt.finf.defaultWidth.charWidth = font->glyph->metrics.horiAdvance / 64;
     cfnt.finf.height = (font->bbox.yMax - font->bbox.yMin) / 64;
-    cfnt.finf.width = (font->bbox.xMax - font->bbox.xMin) / 64; // Not working?
+    cfnt.finf.width = (font->bbox.xMax - font->bbox.xMin) / 64;
     cfnt.finf.ascent = font->size->metrics.ascender / 64;
     cfnt.finf.padding = 0;
 
