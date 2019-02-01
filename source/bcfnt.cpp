@@ -83,6 +83,7 @@ std::pair<CFNT_s*, size_t> BCFNT::toStruct()
     size += sizeof(TGLP_s) + 8; // Add TGLP header
 
     CFNT_s* font = (CFNT_s*)malloc(size);
+    std::copy(&cfnt, &cfnt + 1, font);
     uint8_t* fontRaw = (uint8_t*) font; // For readability
     size_t writtenBytes = 0;
     font->signature = 0x544E4643;
