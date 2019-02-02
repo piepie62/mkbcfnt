@@ -212,11 +212,11 @@ void parseImageData(BCFNT& outFont, FT_Face font, const int indices)
     }
 }
 
-int mkbcfnt(char* path, char* input)
+int mkbcfnt(char* path, const char* input, const char* output)
 {
     Magick::InitializeMagick(path);
     int error;
-    if (error = FT_Init_FreeType(&library))
+    if ((error = FT_Init_FreeType(&library)))
     {
         std::printf("Bad things have occured: %d\n", error);
         return error;
@@ -247,7 +247,7 @@ int mkbcfnt(char* path, char* input)
     parseImageData(outFont, font, indices); // Currently crashes
 
     auto fontData = outFont.toStruct();
-    FILE* out = fopen("out.bcfnt", "wb");
+    FILE* out = fopen(output, "wb");
     fwrite(fontData.first, 1, fontData.second, out);
     fclose(out);
 
@@ -315,8 +315,10 @@ int main(int argc, char* argv[])
     }
 
     /* input files */
-    for(; argi < argc; argi ++){
-        mkbcfnt(*argv, argv[argi]);
+    for(int i = 0; argi < argc; argi++, i++){
+        std::string iname = std::string(argv[argi]);
+        std::string outstr = iname.substr(0, iname.find_last_of('.'))+".bcfnt";
+        mkbcfnt(*argv, argv[argi], outstr.c_str());
     }
     return 0;
 }
