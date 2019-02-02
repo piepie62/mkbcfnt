@@ -6,7 +6,7 @@ AC_INIT([mkbcfnt], [0.0.1], [https://github.com/piepie62/mkbcfnt/issues])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([source/main.cpp])
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign])
 
 # Checks for programs.
 AC_PROG_CXX
@@ -34,7 +34,7 @@ PKG_CONFIG=$_save_PKG_CONFIG[]dnl
 
 # Checks for libraries.
 PKG_CHECK_MODULES_STATIC(FreeType, [freetype2])
-PKG_CHECK_MODULES_STATIC(ImageMagick, [Magick++ >= 6.0.0])
+PKG_CHECK_MODULES_STATIC(ImageMagick, [Magick++ >= 6.0.0 Magick++ < 7.0.0])
 
 # Checks for header files.
 AC_CHECK_HEADERS([unistd.h])

@@ -10,11 +10,15 @@ FT_Library library;
 
 void printHelp(char* prog)
 {
-    std::printf("Usage: %s [OPTIONS...] <input>\n", prog);
+    const char *options[] = {
+        "", "--help or -h", "show this usage",
+    };
+    std::printf("Usage: %s [OPTIONS...] <input>.ttf\n", prog);
 
-    std::printf(
-        "  Options:\n"
-        "    <input>                      Input file\n\n");
+    std::printf("Options:\n");
+    for(int optIndex = 0; optIndex < sizeof(options) / sizeof(options[optIndex]); optIndex += 3){
+        std::printf("%-2s  %-12s  %s\n", options[optIndex], options[optIndex + 1], options[optIndex + 2]);
+    }
 }
 
 CMAP_s* makeCMAP(std::vector<std::pair<int, int>> pairs)
@@ -208,25 +212,20 @@ void parseImageData(BCFNT& outFont, FT_Face font, const int indices)
     }
 }
 
-int main(int argc, char* argv[])
+int mkbcfnt(char* path, char* input)
 {
-    Magick::InitializeMagick(*argv);
+    Magick::InitializeMagick(path);
     int error;
-    if (argc < 2)
-    {
-        printHelp(argv[0]);
-        return 1;
-    }
     if (error = FT_Init_FreeType(&library))
     {
         std::printf("Bad things have occured: %d\n", error);
         return error;
     }
     FT_Face font;
-    error = FT_New_Face(library, argv[1], 0, &font);
+    error = FT_New_Face(library, input, 0, &font);
     if (error == FT_Err_Unknown_File_Format)
     {
-        std::printf("`%s` is not a recognized font format\n", argv[1]);
+        std::printf("`%s` is not a recognized font format\n", input);
         return error;
     }
     else if (error)
@@ -237,7 +236,7 @@ int main(int argc, char* argv[])
     error = FT_Select_Charmap(font, FT_ENCODING_UNICODE);
     if (error)
     {
-        std::printf("`%s` does not have a Unicode character map\n", argv[1]);
+        std::printf("`%s` does not have a Unicode character map\n", input);
         return error;
     }
     // Sets glyph sizes
@@ -253,5 +252,71 @@ int main(int argc, char* argv[])
     fclose(out);
 
     FT_Done_FreeType(library);
+    return 0;
+}
+
+/* dispatch option char */
+bool getOptionChar(char* prog, const char opt)
+{
+    switch(opt)
+    {
+    case 'h':
+        printHelp(prog);
+        return true;
+    }
+    return false;
+}
+
+/* dispatch option string */
+bool getOptionStr(char* prog, const char* optStr)
+{
+    if(strcmp(optStr, "help") == 0){
+        printHelp(prog);
+    }
+    else{
+        return false;
+    }
+    return true;
+}
+
+int main(int argc, char* argv[])
+{
+    int argi = 1;
+    int argci;
+
+    if(argc < 2){
+        printHelp(argv[0]);
+    }
+    else{
+        /* options */
+        while((argi < argc) && (argv[argi][0] == '-'))
+        {
+            if(argv[argi][1] == '-'){
+                /* --string */
+                if(!getOptionStr(argv[0], &argv[argi][2])){
+                    printf("Invalid option.\n");
+                    return 1;
+                }
+            }
+            else{
+                /* -letters */
+                argci = 1;
+                while(argv[argi][argci] != '\0')
+                {
+                    if(!getOptionChar(argv[0], argv[argi][argci])){
+                        printf("Invalid option.\n");
+                        return 1;
+                    }
+                    argci ++;
+                }
+            }
+            argi++;
+        }
+    }
+
+    /* input files */
+    for(; argi < argc; argi ++){
+        mkbcfnt(*argv, argv[argi]);
+    }
     return 0;
 }

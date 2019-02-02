@@ -24,3 +24,5 @@ stamp-h1
 *.png
 *.jpg
 *.bin
+*.ttf
+*.bcfnt
